@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
 
 typedef struct http_request {
@@ -16,7 +17,7 @@ typedef struct http_request {
 } http_request;
 
 http_request *parse_request(char *request);
-
+char *gen_response(http_request *request);
 int main() {
   // Disable output buffering
   setbuf(stdout, NULL);
@@ -85,12 +86,8 @@ int main() {
   }
 
   char *response;
+  response = gen_response(request);
   // if path is "/"
-  if (strcmp(request->path, "/") == 0) {
-    response = "HTTP/1.1 200 OK\r\n\r\n";
-  } else {
-    response = "HTTP/1.1 404 Not Found\r\n\r\n";
-  }
 
   // server response
   int bytes_sent = send(fd, response, strlen(response), 0);
@@ -140,4 +137,36 @@ http_request *parse_request(char *request) {
   strcpy(req->version, version);
 
   return req;
+}
+
+char *gen_response(http_request *request) {
+
+  char *response = NULL;
+  char *res = NULL;
+
+  if (strcmp(request->path, "/") == 0) {
+    res = "HTTP/1.1 200 OK\r\n\r\n";
+  } else {
+    char *endpoint = strtok(request->path, "/");
+    if (strcmp(endpoint, "echo") == 0) {
+      char *str = strtok(NULL, "/");
+      if (str != NULL) {
+        response = "HTTP/1.1 200 OK";
+
+        char *tmp = "Content-Type: text/plain\r\nContent-Length:";
+        char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+        sprintf(headers, "%s %lu", tmp, strlen(str));
+
+        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+        // maybe use snprintf instead
+      } else {
+        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+      }
+    } else {
+      res = "HTTP/1.1 404 Not Found\r\n\r\n";
+    }
+  }
+  return res;
 }
