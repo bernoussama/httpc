@@ -157,7 +157,6 @@ http_request *parse_request(char *request) {
     req->headers[i] = malloc(strlen(header) + 1);
     strcpy(req->headers[i], header);
     header = strtok(NULL, "\r\n");
-    printf("%s\n", req->headers[i]);
   }
 
   return req;
