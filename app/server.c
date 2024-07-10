@@ -174,9 +174,8 @@ char *gen_response(http_request *request) {
     char *endpoint = request->path;
 
     if (strcmp(endpoint, "/user-agent") == 0) {
-      char *str = strtok(request->headers[2], ":");
+      char *str = strtok(request->headers[1], ":");
       str = strtok(NULL, ": ");
-      printf("User-Agent: %s\n", str);
       // if (str != NULL) {
       response = "HTTP/1.1 200 OK";
 
