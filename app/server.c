@@ -175,20 +175,20 @@ char *gen_response(http_request *request) {
     if (strcmp(endpoint, "user-agent") == 0) {
       char *str = strtok(request->headers[2], ":");
       str = strtok(NULL, ":");
-      if (str != NULL) {
-        response = "HTTP/1.1 200 OK";
+      // if (str != NULL) {
+      response = "HTTP/1.1 200 OK";
 
-        char *tmp = "Content-Type: text/plain\r\nContent-Length:";
-        char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
-        sprintf(headers, "%s %lu", tmp, strlen(str));
+      char *tmp = "Content-Type: text/plain\r\nContent-Length:";
+      char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+      sprintf(headers, "%s %lu", tmp, strlen(str));
 
-        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+      res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
 
-        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
-        // maybe use snprintf instead
-      } else {
-        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
-      }
+      sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+      // maybe use snprintf instead
+      // } else {
+      //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+      // }
     } else if (strcmp(endpoint, "echo") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
