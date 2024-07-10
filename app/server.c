@@ -1,4 +1,3 @@
-#include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -71,35 +70,38 @@ int main() {
 
   printf("Waiting for a client to connect...\n");
   client_addr_len = sizeof(client_addr);
+  while (1) {
+    int fd =
+        accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+    printf("Client connected\n");
+    if (fd == -1)
+      continue;
 
-  int fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-  printf("Client connected\n");
+    // Allocate memory to hold both arguments for the thread (file descriptor
+    // and request buffer)
+    void *thread_args = malloc(sizeof(int) + sizeof(char *) * 2);
+    if (thread_args == NULL) {
+      perror("malloc failed");
+      exit(1);
+    }
+    // Set the first argument (file descriptor) in the allocated memory
+    *((int *)thread_args) = fd;
+    // Allocate memory for the request buffer copy within the thread arguments
+    char *request_buffer_copy = malloc(1024);
+    if (request_buffer_copy == NULL) {
+      perror("malloc failed");
+      free(thread_args); // Free previously allocated memory
+      exit(1);
+    }
+    // Copy the request buffer into the thread arguments' buffer
+    memcpy(request_buffer_copy, request_buffer, 1024);
+    // Set the second argument (request buffer pointer) in the allocated memory
+    ((char **)thread_args)[1] = request_buffer_copy;
 
-  // Allocate memory to hold both arguments for the thread (file descriptor and
-  // request buffer)
-  void *thread_args = malloc(sizeof(int) + sizeof(char *) * 2);
-  if (thread_args == NULL) {
-    perror("malloc failed");
-    exit(1);
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, handle_client, thread_args);
+    pthread_detach(thread_id);
   }
-  // Set the first argument (file descriptor) in the allocated memory
-  *((int *)thread_args) = fd;
-  // Allocate memory for the request buffer copy within the thread arguments
-  char *request_buffer_copy = malloc(1024);
-  if (request_buffer_copy == NULL) {
-    perror("malloc failed");
-    free(thread_args); // Free previously allocated memory
-    exit(1);
-  }
-  // Copy the request buffer into the thread arguments' buffer
-  memcpy(request_buffer_copy, request_buffer, 1024);
-  // Set the second argument (request buffer pointer) in the allocated memory
-  ((char **)thread_args)[1] = request_buffer_copy;
-
-  pthread_t thread_id;
-  pthread_create(&thread_id, NULL, handle_client, thread_args);
-  pthread_detach(thread_id);
-
   close(server_fd);
 
   return 0;
