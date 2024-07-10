@@ -170,9 +170,10 @@ char *gen_response(http_request *request) {
   if (strcmp(request->path, "/") == 0) {
     res = "HTTP/1.1 200 OK\r\n\r\n";
   } else {
-    char *endpoint = strtok(request->path, "/");
+    // char *endpoint = strtok(request->path, "/");
+    char *endpoint = request->path;
 
-    if (strcmp(endpoint, "user-agent") == 0) {
+    if (strcmp(endpoint, "/user-agent") == 0) {
       char *str = strtok(request->headers[2], ":");
       str = strtok(NULL, ":");
       // if (str != NULL) {
@@ -189,7 +190,7 @@ char *gen_response(http_request *request) {
       // } else {
       //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       // }
-    } else if (strcmp(endpoint, "echo") == 0) {
+    } else if (strcmp(endpoint, "/echo") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
         response = "HTTP/1.1 200 OK";
