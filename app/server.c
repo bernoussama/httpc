@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
@@ -174,7 +175,14 @@ char *gen_response(http_request *request) {
     // char *endpoint = request->path;
 
     if (strcmp(endpoint, "user-agent") == 0) {
-      char *str = strtok(request->headers[1], ":");
+      char *str = NULL;
+      for (int i = 0; i < 10; i++) {
+        str = strtok(request->headers[i], ":");
+        if (strcasecmp(str, "User-Agent") == 0) {
+          break;
+        }
+      }
+      // char *str = strtok(request->headers[1], ":");
       str = strtok(NULL, ": ");
       // if (str != NULL) {
       response = "HTTP/1.1 200 OK";
