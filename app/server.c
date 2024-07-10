@@ -1,6 +1,8 @@
+#include <bits/pthreadtypes.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +21,7 @@ typedef struct http_request {
 
 http_request *parse_request(char *request);
 char *gen_response(http_request *request);
+void *handle_client(void *args);
 int main() {
   // Disable output buffering
   setbuf(stdout, NULL);
@@ -72,6 +75,42 @@ int main() {
   int fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
   printf("Client connected\n");
 
+  // Allocate memory to hold both arguments for the thread (file descriptor and
+  // request buffer)
+  void *thread_args = malloc(sizeof(int) + sizeof(char *) * 2);
+  if (thread_args == NULL) {
+    perror("malloc failed");
+    exit(1);
+  }
+  // Set the first argument (file descriptor) in the allocated memory
+  *((int *)thread_args) = fd;
+  // Allocate memory for the request buffer copy within the thread arguments
+  char *request_buffer_copy = malloc(1024);
+  if (request_buffer_copy == NULL) {
+    perror("malloc failed");
+    free(thread_args); // Free previously allocated memory
+    exit(1);
+  }
+  // Copy the request buffer into the thread arguments' buffer
+  memcpy(request_buffer_copy, request_buffer, 1024);
+  // Set the second argument (request buffer pointer) in the allocated memory
+  ((char **)thread_args)[1] = request_buffer_copy;
+
+  pthread_t thread_id;
+  pthread_create(&thread_id, NULL, handle_client, thread_args);
+  pthread_detach(thread_id);
+
+  close(server_fd);
+
+  return 0;
+}
+
+void *handle_client(void *args) {
+
+  int fd = *((int *)args);
+  char request_buffer[1024];
+  memcpy(request_buffer, ((char **)args)[1],
+         1024); // Safer alternative to strcpy
   // Receive the HTTP request
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
   if (bytes_received == -1) {
@@ -83,7 +122,7 @@ int main() {
   http_request *request = parse_request(request_string);
   if (request == NULL) {
     printf("Failed to parse request\n");
-    return 1;
+    return NULL;
   }
 
   char *response;
@@ -101,9 +140,6 @@ int main() {
   // free(request->headers);
   free(request->body);
   free(request);
-  close(server_fd);
-
-  return 0;
 }
 
 http_request *parse_request(char *request) {
