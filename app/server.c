@@ -206,6 +206,8 @@ char *gen_response(http_request *request) {
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
+    } else {
+      res = "HTTP/1.1 400 Bad Request\r\n\r\n";
     }
   }
   return res;
