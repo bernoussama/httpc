@@ -12,7 +12,7 @@ typedef struct http_request {
   char *method;
   char *path;
   char *version;
-  char **headers; // Maximum 10 headers
+  char *headers[10]; // max 10 headers
   char *body;
 } http_request;
 
@@ -87,11 +87,19 @@ int main() {
 
   char *response;
   response = gen_response(request);
-  // if path is "/"
-
+  if (response != NULL) {
+    int bytes_sent = send(fd, response, strlen(response), 0);
+  } else {
+    printf("Failed to generate response\n");
+  }
   // server response
-  int bytes_sent = send(fd, response, strlen(response), 0);
 
+  free(request->method);
+  free(request->path);
+  free(request->version);
+  // free(request->headers);
+  free(request->body);
+  free(request);
   close(server_fd);
 
   return 0;
@@ -136,6 +144,22 @@ http_request *parse_request(char *request) {
   req->version = malloc(strlen(version) + 1);
   strcpy(req->version, version);
 
+  char *header = strtok(NULL, "\r\n");
+  if (header == NULL) {
+    // Error handling: invalid request format
+    free(req->version);
+    free(req->method);
+    free(req->path);
+    free(req);
+    return (NULL);
+  }
+  for (int i = 0; header != NULL; i++) {
+    req->headers[i] = malloc(strlen(header) + 1);
+    strcpy(req->headers[i], header);
+    header = strtok(NULL, "\r\n");
+    printf("%s\n", req->headers[i]);
+  }
+
   return req;
 }
 
@@ -164,8 +188,23 @@ char *gen_response(http_request *request) {
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
-    } else {
-      res = "HTTP/1.1 404 Not Found\r\n\r\n";
+    } else if (strcmp(endpoint, "user-agent") == 0) {
+      char *str = strtok(request->headers[2], ":");
+      str = strtok(NULL, ":");
+      if (str != NULL) {
+        response = "HTTP/1.1 200 OK";
+
+        char *tmp = "Content-Type: text/plain\r\nContent-Length:";
+        char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+        sprintf(headers, "%s %lu", tmp, strlen(str));
+
+        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+        // maybe use snprintf instead
+      } else {
+        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+      }
     }
   }
   return res;
