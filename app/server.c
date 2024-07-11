@@ -254,7 +254,7 @@ char *gen_response(http_request *request) {
       //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       // }
       free(headers);
-      free(str);
+      // free(str);
     } else if (strcmp(endpoint, "echo") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
