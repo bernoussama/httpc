@@ -281,6 +281,11 @@ char *gen_response(http_request *request) {
         char *file_path = malloc(strlen(directory) + strlen(str) + 1);
         sprintf(file_path, "%s/%s", directory, str);
         str = read_file(file_path);
+        if (str != NULL) {
+          free(file_path);
+        } else {
+          res = "HTTP/1.1 404 Not Found\r\n\r\n";
+        }
 
         // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
         char *tmp = "Content-Type: application/octet-stream\r\nContent-Length:";
