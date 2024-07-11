@@ -21,6 +21,8 @@ typedef struct http_request {
 http_request *parse_request(char *request);
 char *gen_response(http_request *request);
 void *handle_client(void *arg);
+char *read_file(char *filename);
+
 int main() {
   // Disable output buffering
   setbuf(stdout, NULL);
@@ -62,7 +64,7 @@ int main() {
     return 1;
   }
 
-  int connection_backlog = 5;
+  int connection_backlog = 10;
   if (listen(server_fd, connection_backlog) != 0) {
     printf("Listen failed: %s \n", strerror(errno));
     return 1;
@@ -146,12 +148,14 @@ void *handle_client(void *arg) {
 http_request *parse_request(char *request) {
   http_request *req = malloc(sizeof(http_request));
   if (request == NULL) {
+    printf("failed to malloc\n");
     return (NULL); // Error handling: memory allocation failed
   }
 
   // parse method
   char *method = strtok(request, " ");
   if (method == NULL) {
+    printf("method null\n");
     // Error handling: invalid request format
     free(req);
     return (NULL);
@@ -162,6 +166,7 @@ http_request *parse_request(char *request) {
   // parse path
   char *path = strtok(NULL, " ");
   if (path == NULL) {
+    printf("path null\n");
     // Error handling: invalid request format
     free(req->method);
     free(req);
@@ -173,6 +178,7 @@ http_request *parse_request(char *request) {
   // parse version
   char *version = strtok(NULL, "\r\n");
   if (version == NULL) {
+    printf("version null\n");
     // Error handling: invalid request format
     free(req->method);
     free(req->path);
@@ -184,12 +190,13 @@ http_request *parse_request(char *request) {
 
   char *header = strtok(NULL, "\r\n");
   if (header == NULL) {
+    printf("header null\n");
     // Error handling: invalid request format
-    free(req->version);
-    free(req->method);
-    free(req->path);
-    free(req);
-    return (NULL);
+    // free(req->version);
+    // free(req->method);
+    // free(req->path);
+    // free(req);
+    // return (NULL);
   }
   for (int i = 0; header != NULL; i++) {
     req->headers[i] = malloc(strlen(header) + 1);
@@ -221,6 +228,7 @@ char *gen_response(http_request *request) {
       }
       // char *str = strtok(request->headers[1], ":");
       str = strtok(NULL, ": ");
+      printf("User-Agent: %s\n", str);
       // if (str != NULL) {
       response = "HTTP/1.1 200 OK";
 
@@ -235,6 +243,8 @@ char *gen_response(http_request *request) {
       // } else {
       //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       // }
+      free(headers);
+      free(str);
     } else if (strcmp(endpoint, "echo") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
@@ -248,12 +258,65 @@ char *gen_response(http_request *request) {
 
         sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
         // maybe use snprintf instead
+
+        free(headers);
+        free(str);
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
+    } else if (strcmp(endpoint, "file") == 0) {
+      char *str = strtok(NULL, "/");
+      if (str != NULL) {
+        response = "HTTP/1.1 200 OK";
+        str = read_file(str);
+
+        // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
+        char *tmp = "Content-Type: application/octet-stream\r\nContent-Length:";
+        char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+        sprintf(headers, "%s %lu", tmp, strlen(str));
+
+        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+        // maybe use snprintf instead
+
+        if (headers != NULL)
+          free(headers);
+        free(str);
+      } else {
+        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+      }
+
     } else {
       res = "HTTP/1.1 404 Not Found\r\n\r\n";
     }
   }
   return res;
+}
+
+char *read_file(char *filename) {
+  FILE *fp;
+  // char filename[] = "example.txt"; // replace with your file name
+
+  fp = fopen(filename, "r"); // open file in read-only mode
+  if (fp == NULL) {
+    printf("Error opening file\n");
+    return NULL;
+  }
+
+  size_t fileSize;        // size of the file
+  fseek(fp, 0, SEEK_END); // move to the end of the file
+  fileSize = ftell(fp);   // get the current position (end of the file)
+  rewind(fp);             // move back to the beginning of the file
+
+  char *fileContent = malloc(fileSize + 1); // allocate memory for the content
+  fread(fileContent, sizeof(char), fileSize,
+        fp);                    // read the contents into the buffer
+  fileContent[fileSize] = '\0'; // null-terminate the string
+
+  printf("File contents: %s\n", fileContent);
+
+  // free(fileContent); // don't forget to free the memory!
+  fclose(fp);
+  return fileContent;
 }
