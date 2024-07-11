@@ -283,23 +283,25 @@ char *gen_response(http_request *request) {
         str = read_file(file_path);
         if (str != NULL) {
           free(file_path);
+
+          // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
+          char *tmp =
+              "Content-Type: application/octet-stream\r\nContent-Length:";
+          char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+          sprintf(headers, "%s %lu", tmp, strlen(str));
+
+          res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+          sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+          // maybe use snprintf instead
+
+          if (headers != NULL)
+            free(headers);
+          free(str);
         } else {
+          free(str);
           res = "HTTP/1.1 404 Not Found\r\n\r\n";
         }
-
-        // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
-        char *tmp = "Content-Type: application/octet-stream\r\nContent-Length:";
-        char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
-        sprintf(headers, "%s %lu", tmp, strlen(str));
-
-        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
-
-        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
-        // maybe use snprintf instead
-
-        if (headers != NULL)
-          free(headers);
-        free(str);
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
@@ -317,7 +319,7 @@ char *read_file(char *file_path) {
 
   fp = fopen(file_path, "r"); // open file in read-only mode
   if (fp == NULL) {
-    printf("Error opening file\n");
+    // printf("Error opening file\n");
     return NULL;
   }
 
