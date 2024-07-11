@@ -297,6 +297,7 @@ char *gen_response(http_request *request) {
 
           if (headers != NULL)
             free(headers);
+
           free(str);
         } else {
           free(str);
@@ -310,6 +311,7 @@ char *gen_response(http_request *request) {
       res = "HTTP/1.1 404 Not Found\r\n\r\n";
     }
   }
+
   return res;
 }
 
