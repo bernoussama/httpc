@@ -21,9 +21,10 @@ typedef struct http_request {
 http_request *parse_request(char *request);
 char *gen_response(http_request *request);
 void *handle_client(void *arg);
-char *read_file(char *filename);
+char *read_file(char *file_path);
 
-int main() {
+char *directory = NULL;
+int main(int argc, char *argv[]) {
   // Disable output buffering
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
@@ -31,7 +32,16 @@ int main() {
   // You can use print statements as follows for debugging, they'll be visible
   // when running tests.
   printf("Logs from your program will appear here!\n");
-
+  if (argc >= 2) {
+    // Check if the argument is "--directory"
+    if (strcmp(argv[1], "--directory") == 0) {
+      if (argc < 3) {
+        fprintf(stderr, "Error: Missing directory path\n");
+        return 1;
+      }
+      directory = argv[2];
+    }
+  }
   // Uncomment this block to pass the first stage
   //
   int server_fd, client_addr_len;
@@ -264,11 +274,13 @@ char *gen_response(http_request *request) {
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
-    } else if (strcmp(endpoint, "file") == 0) {
+    } else if (strcmp(endpoint, "files") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
         response = "HTTP/1.1 200 OK";
-        str = read_file(str);
+        char *file_path = malloc(strlen(directory) + strlen(str) + 1);
+        sprintf(file_path, "%s/%s", directory, str);
+        str = read_file(file_path);
 
         // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
         char *tmp = "Content-Type: application/octet-stream\r\nContent-Length:";
@@ -294,11 +306,11 @@ char *gen_response(http_request *request) {
   return res;
 }
 
-char *read_file(char *filename) {
+char *read_file(char *file_path) {
   FILE *fp;
   // char filename[] = "example.txt"; // replace with your file name
 
-  fp = fopen(filename, "r"); // open file in read-only mode
+  fp = fopen(file_path, "r"); // open file in read-only mode
   if (fp == NULL) {
     printf("Error opening file\n");
     return NULL;
