@@ -88,7 +88,6 @@ int main(int argc, char *argv[]) {
     printf("Client connected\n");
     if (fd == -1)
       continue;
-
     // // Allocate memory to hold both arguments for the thread (file descriptor
     // // and request buffer)
     // void *thread_args = malloc(sizeof(int) + sizeof(char *) * 2);
@@ -112,6 +111,7 @@ int main(int argc, char *argv[]) {
     // ((char **)thread_args)[1] = request_buffer_copy;
 
     pthread_t thread_id;
+    printf("Creating thread...\n");
     pthread_create(&thread_id, NULL, handle_client, (void *)&fd);
     pthread_detach(thread_id);
   }
@@ -122,9 +122,12 @@ int main(int argc, char *argv[]) {
 
 void *handle_client(void *arg) {
 
-  int fd = *((int *)arg);
-  char request_buffer[1024];
+  printf("Handling client...\n");
+  int fd = *(int *)arg;
+
+  char request_buffer[2048];
   // Receive the HTTP request
+  printf("Receiving request...\n");
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
   if (bytes_received == -1) {
     perror("recv failed");
@@ -156,6 +159,8 @@ void *handle_client(void *arg) {
 }
 
 http_request *parse_request(char *request) {
+  printf("Parsing request...\n");
+  printf("mallocing request...\n");
   http_request *req = malloc(sizeof(http_request));
   if (request == NULL) {
     printf("failed to malloc\n");
@@ -163,6 +168,7 @@ http_request *parse_request(char *request) {
   }
 
   // parse method
+  printf("parsing method...\n");
   char *method = strtok(request, " ");
   if (method == NULL) {
     printf("method null\n");
@@ -174,6 +180,7 @@ http_request *parse_request(char *request) {
   strcpy(req->method, method);
 
   // parse path
+  printf("parsing path...\n");
   char *path = strtok(NULL, " ");
   if (path == NULL) {
     printf("path null\n");
@@ -186,6 +193,7 @@ http_request *parse_request(char *request) {
   strcpy(req->path, path);
 
   // parse version
+  printf("parsing version...\n");
   char *version = strtok(NULL, "\r\n");
   if (version == NULL) {
     printf("version null\n");
@@ -198,6 +206,7 @@ http_request *parse_request(char *request) {
   req->version = malloc(strlen(version) + 1);
   strcpy(req->version, version);
 
+  printf("parsing headers...\n");
   char *header = strtok(NULL, "\r\n");
   if (header == NULL) {
     printf("header null\n");
@@ -208,12 +217,17 @@ http_request *parse_request(char *request) {
     // free(req);
     // return (NULL);
   }
-  for (int i = 0; header != NULL; i++) {
-    req->headers[i] = malloc(strlen(header) + 1);
+  for (int i = 0; header != NULL && i < 10; i++) {
+    printf("header %s\n", header);
+    printf("mallocing header...\n");
+    req->headers[i] = malloc(strlen(header) + 2);
+    printf("copying header...\n");
     strcpy(req->headers[i], header);
     header = strtok(NULL, "\r\n");
+    if (header == NULL)
+      printf("header null\n");
   }
-
+  printf("returning req...\n");
   return req;
 }
 
@@ -254,7 +268,8 @@ char *gen_response(http_request *request) {
       //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       // }
       free(headers);
-      // free(str);
+      // if (str != NULL)
+      //   free(str);
     } else if (strcmp(endpoint, "echo") == 0) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
@@ -270,7 +285,7 @@ char *gen_response(http_request *request) {
         // maybe use snprintf instead
 
         free(headers);
-        free(str);
+        // free(str);
       } else {
         res = "HTTP/1.1 400 Bad Request\r\n\r\n";
       }
@@ -278,13 +293,15 @@ char *gen_response(http_request *request) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
         response = "HTTP/1.1 200 OK";
-        char *file_path = malloc(strlen(directory) + strlen(str) + 1);
+        printf("mallocing filepath...\n");
+        char *file_path = malloc(strlen(directory) + strlen(str) + 2);
+        printf("sprintfing...\n");
         sprintf(file_path, "%s/%s", directory, str);
+        printf("Reading file...\n");
         str = read_file(file_path);
         if (str != NULL) {
           free(file_path);
 
-          // char *tmp = "Content-Type: text/plain\r\nContent-Length:";
           char *tmp =
               "Content-Type: application/octet-stream\r\nContent-Length:";
           char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
@@ -298,9 +315,8 @@ char *gen_response(http_request *request) {
           if (headers != NULL)
             free(headers);
 
-          free(str);
+          // free(str);
         } else {
-          free(str);
           res = "HTTP/1.1 404 Not Found\r\n\r\n";
         }
       } else {
