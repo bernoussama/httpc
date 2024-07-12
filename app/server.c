@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
   // You can use print statements as follows for debugging, they'll be visible
   // when running tests.
-  printf("Logs from your program will appear here!\n");
+
   if (argc >= 2) {
     // Check if the argument is "--directory"
     if (strcmp(argv[1], "--directory") == 0) {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd == -1) {
-    printf("Socket creation failed: %s...\n", strerror(errno));
+
     return 1;
   }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   int reuse = 1;
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) <
       0) {
-    printf("SO_REUSEADDR failed: %s \n", strerror(errno));
+
     return 1;
   }
 
@@ -70,22 +70,21 @@ int main(int argc, char *argv[]) {
   };
 
   if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0) {
-    printf("Bind failed: %s \n", strerror(errno));
+
     return 1;
   }
 
   int connection_backlog = 10;
   if (listen(server_fd, connection_backlog) != 0) {
-    printf("Listen failed: %s \n", strerror(errno));
+
     return 1;
   }
 
-  printf("Waiting for a client to connect...\n");
   client_addr_len = sizeof(client_addr);
   while (1) {
     int fd =
         accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-    printf("Client connected\n");
+
     if (fd == -1)
       continue;
     // // Allocate memory to hold both arguments for the thread (file descriptor
@@ -111,7 +110,7 @@ int main(int argc, char *argv[]) {
     // ((char **)thread_args)[1] = request_buffer_copy;
 
     pthread_t thread_id;
-    printf("Creating thread...\n");
+
     pthread_create(&thread_id, NULL, handle_client, (void *)&fd);
     pthread_detach(thread_id);
   }
@@ -122,12 +121,11 @@ int main(int argc, char *argv[]) {
 
 void *handle_client(void *arg) {
 
-  printf("Handling client...\n");
   int fd = *(int *)arg;
 
   char request_buffer[2048];
   // Receive the HTTP request
-  printf("Receiving request...\n");
+
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
   if (bytes_received == -1) {
     perror("recv failed");
@@ -137,7 +135,7 @@ void *handle_client(void *arg) {
   char *request_string = request_buffer;
   http_request *request = parse_request(request_string);
   if (request == NULL) {
-    printf("Failed to parse request\n");
+
     return NULL;
   }
 
@@ -146,7 +144,6 @@ void *handle_client(void *arg) {
   if (response != NULL) {
     int bytes_sent = send(fd, response, strlen(response), 0);
   } else {
-    printf("Failed to generate response\n");
   }
   // server response
 
@@ -159,19 +156,18 @@ void *handle_client(void *arg) {
 }
 
 http_request *parse_request(char *request) {
-  printf("Parsing request...\n");
-  printf("mallocing request...\n");
+
   http_request *req = malloc(sizeof(http_request));
   if (request == NULL) {
-    printf("failed to malloc\n");
+
     return (NULL); // Error handling: memory allocation failed
   }
 
   // parse method
-  printf("parsing method...\n");
+
   char *method = strtok(request, " ");
   if (method == NULL) {
-    printf("method null\n");
+
     // Error handling: invalid request format
     free(req);
     return (NULL);
@@ -180,10 +176,10 @@ http_request *parse_request(char *request) {
   strcpy(req->method, method);
 
   // parse path
-  printf("parsing path...\n");
+
   char *path = strtok(NULL, " ");
   if (path == NULL) {
-    printf("path null\n");
+
     // Error handling: invalid request format
     free(req->method);
     free(req);
@@ -193,10 +189,10 @@ http_request *parse_request(char *request) {
   strcpy(req->path, path);
 
   // parse version
-  printf("parsing version...\n");
+
   char *version = strtok(NULL, "\r\n");
   if (version == NULL) {
-    printf("version null\n");
+
     // Error handling: invalid request format
     free(req->method);
     free(req->path);
@@ -206,10 +202,9 @@ http_request *parse_request(char *request) {
   req->version = malloc(strlen(version) + 1);
   strcpy(req->version, version);
 
-  printf("parsing headers...\n");
   char *header = strtok(NULL, "\r\n");
   if (header == NULL) {
-    printf("header null\n");
+
     // Error handling: invalid request format
     // free(req->version);
     // free(req->method);
@@ -218,16 +213,14 @@ http_request *parse_request(char *request) {
     // return (NULL);
   }
   for (int i = 0; header != NULL && i < 10; i++) {
-    printf("header %s\n", header);
-    printf("mallocing header...\n");
-    req->headers[i] = malloc(strlen(header) + 2);
-    printf("copying header...\n");
+
+    req->headers[i] = malloc(strlen(header) + 1);
+
     strcpy(req->headers[i], header);
     header = strtok(NULL, "\r\n");
-    if (header == NULL)
-      printf("header null\n");
+    // if (header == NULL)
   }
-  printf("returning req...\n");
+
   return req;
 }
 
@@ -252,7 +245,7 @@ char *gen_response(http_request *request) {
       }
       // char *str = strtok(request->headers[1], ":");
       str = strtok(NULL, ": ");
-      printf("User-Agent: %s\n", str);
+
       // if (str != NULL) {
       response = "HTTP/1.1 200 OK";
 
@@ -293,11 +286,11 @@ char *gen_response(http_request *request) {
       char *str = strtok(NULL, "/");
       if (str != NULL) {
         response = "HTTP/1.1 200 OK";
-        printf("mallocing filepath...\n");
+
         char *file_path = malloc(strlen(directory) + strlen(str) + 2);
-        printf("sprintfing...\n");
+
         sprintf(file_path, "%s/%s", directory, str);
-        printf("Reading file...\n");
+
         str = read_file(file_path);
         if (str != NULL) {
           free(file_path);
@@ -350,8 +343,6 @@ char *read_file(char *file_path) {
   fread(fileContent, sizeof(char), fileSize,
         fp);                    // read the contents into the buffer
   fileContent[fileSize] = '\0'; // null-terminate the string
-
-  printf("File contents: %s\n", fileContent);
 
   // free(fileContent); // don't forget to free the memory!
   fclose(fp);
