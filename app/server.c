@@ -160,7 +160,6 @@ void *handle_client(void *arg) {
 
 http_request *parse_request(char *request) {
   char *headers = strchr(request, '\n') + 1;
-  printf("headers: %s**\n", headers);
   http_request *req = malloc(sizeof(http_request));
   if (request == NULL) {
 
@@ -213,22 +212,17 @@ http_request *parse_request(char *request) {
   char *header = strtok(NULL, "\r");
   for (int i = 0; strcmp(header, "\n") != 0 && i < 10; i++) {
     header = header + 1;
-    printf("%s", header);
     req->headers[i] = malloc(strlen(header) + 1);
 
     strcpy(req->headers[i], header);
     header = strtok(NULL, "\r");
   }
 
-  printf("parsing body...\n");
-
   char *body = strtok(NULL, "\r\n");
   if (body != NULL) {
-    printf("body: %s\n", body);
     req->body = malloc(strlen(body) + 1);
     strcpy(req->body, body);
   } else {
-    printf("Body is NULL\n");
     req->body = NULL;
   }
 
