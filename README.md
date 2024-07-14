@@ -7,7 +7,7 @@ protocol that powers the web. In this ["Build Your Own HTTP server" Challenge](h
 
 check out CodeCrafters programming challenges and get a free week using my [referral link](https://app.codecrafters.io/r/cute-gorilla-362426). I will get one too.
 
-# How to use
+## Getting Started
 
 The entry point for the HTTP server implementation is in `app/server.c`.
 
@@ -18,7 +18,23 @@ gcc -lz -lcurl  app/*.c -o server
 ./server --directory /tmp/
 ```
 
-# Resources
+<!-- ROADMAP -->
+
+## Roadmap
+
+- [x] Bind to a port
+- [x] Respond with 200
+- [x] Respond with body
+- [x] Read header
+- [x] Concurrent connections
+- [x] Return a file
+- [x] Read request body
+- [ ] HTTP compression
+  - [ ] Compression headers
+  - [ ] Multiple Compression schemes
+  - [ ] Gzip compression
+
+## Resources
 
 [HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html)
 
