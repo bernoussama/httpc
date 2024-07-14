@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <pthread.h>
@@ -9,6 +8,8 @@
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
+
+#define BUFFER_SIZE 1024
 
 typedef struct http_request {
   char *method;
@@ -46,7 +47,8 @@ int main(int argc, char *argv[]) {
   //
   int server_fd, client_addr_len;
   struct sockaddr_in client_addr;
-  char request_buffer[1024];
+  char request_buffer[BUFFER_SIZE];
+  request_buffer[BUFFER_SIZE - 1] = '\0'; // Ensure null-termination
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd == -1) {
@@ -123,7 +125,8 @@ void *handle_client(void *arg) {
 
   int fd = *(int *)arg;
 
-  char request_buffer[2048];
+  char request_buffer[BUFFER_SIZE];
+  request_buffer[BUFFER_SIZE - 1] = '\0'; // Ensure null-termination
   // Receive the HTTP request
 
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
@@ -135,7 +138,6 @@ void *handle_client(void *arg) {
   char *request_string = request_buffer;
   http_request *request = parse_request(request_string);
   if (request == NULL) {
-
     return NULL;
   }
 
@@ -144,6 +146,7 @@ void *handle_client(void *arg) {
   if (response != NULL) {
     int bytes_sent = send(fd, response, strlen(response), 0);
   } else {
+    return NULL;
   }
   // server response
 
@@ -156,7 +159,8 @@ void *handle_client(void *arg) {
 }
 
 http_request *parse_request(char *request) {
-
+  char *headers = strchr(request, '\n') + 1;
+  printf("headers: %s**\n", headers);
   http_request *req = malloc(sizeof(http_request));
   if (request == NULL) {
 
@@ -202,23 +206,30 @@ http_request *parse_request(char *request) {
   req->version = malloc(strlen(version) + 1);
   strcpy(req->version, version);
 
-  char *header = strtok(NULL, "\r\n");
-  if (header == NULL) {
+  // char *headers = strtok(NULL, "\r\n\r\n");
+  // printf("headers: %s\n", headers);
+  // parse_headers(headers, req->headers);
 
-    // Error handling: invalid request format
-    // free(req->version);
-    // free(req->method);
-    // free(req->path);
-    // free(req);
-    // return (NULL);
-  }
-  for (int i = 0; header != NULL && i < 10; i++) {
-
+  char *header = strtok(NULL, "\r");
+  for (int i = 0; strcmp(header, "\n") != 0 && i < 10; i++) {
+    header = header + 1;
+    printf("%s", header);
     req->headers[i] = malloc(strlen(header) + 1);
 
     strcpy(req->headers[i], header);
-    header = strtok(NULL, "\r\n");
-    // if (header == NULL)
+    header = strtok(NULL, "\r");
+  }
+
+  printf("parsing body...\n");
+
+  char *body = strtok(NULL, "\r\n");
+  if (body != NULL) {
+    printf("body: %s\n", body);
+    req->body = malloc(strlen(body) + 1);
+    strcpy(req->body, body);
+  } else {
+    printf("Body is NULL\n");
+    req->body = NULL;
   }
 
   return req;
@@ -229,43 +240,25 @@ char *gen_response(http_request *request) {
   char *response = NULL;
   char *res = NULL;
 
-  if (strcmp(request->path, "/") == 0) {
-    res = "HTTP/1.1 200 OK\r\n\r\n";
-  } else {
-    char *endpoint = strtok(request->path, "/");
-    // char *endpoint = request->path;
+  if (strcmp(request->method, "GET") == 0) {
+    if (strcmp(request->path, "/") == 0) {
+      res = "HTTP/1.1 200 OK\r\n\r\n";
+    } else {
+      char *endpoint = strtok(request->path, "/");
+      // char *endpoint = request->path;
 
-    if (strcmp(endpoint, "user-agent") == 0) {
-      char *str = NULL;
-      for (int i = 0; i < 10; i++) {
-        str = strtok(request->headers[i], ":");
-        if (strcasecmp(str, "User-Agent") == 0) {
-          break;
+      if (strcmp(endpoint, "user-agent") == 0) {
+        char *str = NULL;
+        for (int i = 0; i < 10; i++) {
+          str = strtok(request->headers[i], ":");
+          if (strcasecmp(str, "User-Agent") == 0) {
+            break;
+          }
         }
-      }
-      // char *str = strtok(request->headers[1], ":");
-      str = strtok(NULL, ": ");
+        // char *str = strtok(request->headers[1], ":");
+        str = strtok(NULL, ": ");
 
-      // if (str != NULL) {
-      response = "HTTP/1.1 200 OK";
-
-      char *tmp = "Content-Type: text/plain\r\nContent-Length:";
-      char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
-      sprintf(headers, "%s %lu", tmp, strlen(str));
-
-      res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
-
-      sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
-      // maybe use snprintf instead
-      // } else {
-      //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
-      // }
-      free(headers);
-      // if (str != NULL)
-      //   free(str);
-    } else if (strcmp(endpoint, "echo") == 0) {
-      char *str = strtok(NULL, "/");
-      if (str != NULL) {
+        // if (str != NULL) {
         response = "HTTP/1.1 200 OK";
 
         char *tmp = "Content-Type: text/plain\r\nContent-Length:";
@@ -276,27 +269,18 @@ char *gen_response(http_request *request) {
 
         sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
         // maybe use snprintf instead
-
+        // } else {
+        //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+        // }
         free(headers);
-        // free(str);
-      } else {
-        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
-      }
-    } else if (strcmp(endpoint, "files") == 0) {
-      char *str = strtok(NULL, "/");
-      if (str != NULL) {
-        response = "HTTP/1.1 200 OK";
-
-        char *file_path = malloc(strlen(directory) + strlen(str) + 2);
-
-        sprintf(file_path, "%s/%s", directory, str);
-
-        str = read_file(file_path);
+        // if (str != NULL)
+        //   free(str);
+      } else if (strcmp(endpoint, "echo") == 0) {
+        char *str = strtok(NULL, "/");
         if (str != NULL) {
-          free(file_path);
+          response = "HTTP/1.1 200 OK";
 
-          char *tmp =
-              "Content-Type: application/octet-stream\r\nContent-Length:";
+          char *tmp = "Content-Type: text/plain\r\nContent-Length:";
           char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
           sprintf(headers, "%s %lu", tmp, strlen(str));
 
@@ -305,19 +289,75 @@ char *gen_response(http_request *request) {
           sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
           // maybe use snprintf instead
 
-          if (headers != NULL)
-            free(headers);
-
+          free(headers);
           // free(str);
         } else {
-          res = "HTTP/1.1 404 Not Found\r\n\r\n";
+          res = "HTTP/1.1 400 Bad Request\r\n\r\n";
         }
-      } else {
-        res = "HTTP/1.1 400 Bad Request\r\n\r\n";
-      }
+      } else if (strcmp(endpoint, "files") == 0) {
+        char *str = strtok(NULL, "/");
+        if (str != NULL) {
+          response = "HTTP/1.1 200 OK";
 
-    } else {
-      res = "HTTP/1.1 404 Not Found\r\n\r\n";
+          char *file_path = malloc(strlen(directory) + strlen(str) + 2);
+
+          sprintf(file_path, "%s/%s", directory, str);
+
+          str = read_file(file_path);
+          if (str != NULL) {
+            free(file_path);
+
+            char *tmp =
+                "Content-Type: application/octet-stream\r\nContent-Length:";
+            char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
+            sprintf(headers, "%s %lu", tmp, strlen(str));
+
+            res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+            sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+            // maybe use snprintf instead
+
+            if (headers != NULL)
+              free(headers);
+
+            // free(str);
+          } else {
+            res = "HTTP/1.1 404 Not Found\r\n\r\n";
+          }
+        } else {
+          res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+        }
+
+      } else {
+        res = "HTTP/1.1 404 Not Found\r\n\r\n";
+      }
+    }
+  } else if (strcmp(request->method, "POST") == 0) {
+    printf("POST method\n");
+    char *endpoint = strtok(request->path, "/");
+    if (strcmp(endpoint, "files") == 0) {
+      char *str = strtok(NULL, "/");
+      if (str != NULL) {
+        response = "HTTP/1.1 201 Created\r\n\r\n";
+        // filname to file path
+        char *file_path = malloc(strlen(directory) + strlen(str) + 2);
+        sprintf(file_path, "%s/%s", directory, str);
+
+        /* File pointer to hold reference to our file */
+        FILE *fPtr;
+        /* Open file in w (write) mode. Specify the path and filename */
+        fPtr = fopen(file_path, "w");
+        /* Check if file opening was successful */
+        if (fPtr == NULL) {
+          printf("Unable to create file.\n");
+          free(fPtr);
+        }
+        // fputs(request->body, fPtr);
+        fprintf(fPtr, "%s", request->body);
+        fclose(fPtr);
+        printf("File created and saved successfully.\n");
+        res = response;
+      }
     }
   }
 
