@@ -132,13 +132,12 @@ void *handle_client(void *arg) {
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
   if (bytes_received == -1) {
     perror("recv failed");
-    exit(1);
+    // exit(1);
   }
   request_buffer[bytes_received] = '\0';
   char *request_string = request_buffer;
   http_request *request = parse_request(request_string);
   if (request == NULL) {
-    return NULL;
   }
 
   char *response;
@@ -146,7 +145,6 @@ void *handle_client(void *arg) {
   if (response != NULL) {
     int bytes_sent = send(fd, response, strlen(response), 0);
   } else {
-    return NULL;
   }
   // server response
 
@@ -354,7 +352,6 @@ char *gen_response(http_request *request) {
       }
     }
   }
-
   return res;
 }
 
