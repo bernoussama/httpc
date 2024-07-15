@@ -1,7 +1,10 @@
 <a id="readme-top"></a>
 
+<div align="center">
+
 [![MIT License][license-shield]][license-url]
 
+</div>
 <br />
 
 <div align="center">
