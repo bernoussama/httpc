@@ -13,10 +13,16 @@
 
 [![progress-banner](https://backend.codecrafters.io/progress/http-server/d6024b54-aeef-4707-9128-f99b7d5d5df8)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
+## About
+
 [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) is the
 protocol that powers the web. In this ["Build Your Own HTTP server" Challenge](https://app.codecrafters.io/courses/http-server/overview), I built a multithreaded HTTP/1.1 server in C that is capable of serving multiple clients.
 
 check out CodeCrafters programming challenges and get a free week using my [referral link](https://app.codecrafters.io/r/cute-gorilla-362426). I will get one too.
+
+### Built With
+
+- [![C][C-shield]][C-url]
 
 ## Getting Started
 
@@ -56,3 +62,5 @@ gcc -lz -lcurl  app/*.c -o server
 
 [license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc?style=for-the-badge
 [license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
+[C-shield]: https://img.shields.io/badge/C--blue?style=for-the-badge
+[C-url]: https://en.wikipedia.org/wiki/C_(programming_language)
