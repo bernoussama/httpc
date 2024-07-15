@@ -1,9 +1,11 @@
+<a id="readme-top"></a>
+
 [![MIT License][license-shield]][license-url]
 
 <br />
 
 <div align="center">
-<h3 align="center">HTTPC</h3>
+<h1 align="center">HTTPC</h1>
 </div>
 
 [![progress-banner](https://backend.codecrafters.io/progress/http-server/d6024b54-aeef-4707-9128-f99b7d5d5df8)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
@@ -49,5 +51,5 @@ gcc -lz -lcurl  app/*.c -o server
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc
+[license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc?style=for-the-badge
 [license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
