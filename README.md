@@ -62,5 +62,5 @@ gcc -lz -lcurl  app/*.c -o server
 
 [license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc?style=for-the-badge
 [license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
-[C-shield]: https://img.shields.io/badge/C--blue?style=for-the-badge
+[C-shield]: https://img.shields.io/badge/-C-blue
 [C-url]: https://en.wikipedia.org/wiki/C_(programming_language)
