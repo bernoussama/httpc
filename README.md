@@ -20,11 +20,6 @@ protocol that powers the web. In this ["Build Your Own HTTP server" Challenge](h
 
 check out CodeCrafters programming challenges and get a free week using my [referral link](https://app.codecrafters.io/r/cute-gorilla-362426). I will get one too.
 
-
-### Built With
-
- [![C][C-shield]][C-url]
-
 ## Getting Started
 
 The entry point for the HTTP server implementation is in `app/server.c`.
@@ -51,6 +46,12 @@ gcc -lz -lcurl  app/*.c -o server
   - [ ] Compression headers
   - [ ] Multiple Compression schemes
   - [ ] Gzip compression
+
+
+### Built With
+
+ [![C][C-shield]][C-url]
+
 
 ## Resources
 
