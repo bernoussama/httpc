@@ -55,13 +55,14 @@ gcc -lz -lcurl  app/*.c -o server
 
 ## Resources
 
-[HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html)
+- [HTTP request syntax](https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html)
 
-[Threading in C](https://www.geeksforgeeks.org/multithreading-in-c)
+- [Threading in C](https://www.geeksforgeeks.org/multithreading-in-c)
+
+- The challenge instructions were also a good help.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
 [license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc?style=for-the-badge
 [license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
 [C-shield]: https://img.shields.io/badge/-C-0769AD?style=for-the-badge&logo=C&logoColor=white
