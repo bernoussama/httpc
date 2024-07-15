@@ -22,7 +22,7 @@ check out CodeCrafters programming challenges and get a free week using my [refe
 
 ### Built With
 
-- [![C][C-shield]][C-url]
+* [![C][C-shield]][C-url]
 
 ## Getting Started
 
