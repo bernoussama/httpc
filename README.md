@@ -68,7 +68,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/0ussamaBernou/httpc?tab=MIT-1-ov-file) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
