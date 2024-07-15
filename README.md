@@ -8,7 +8,7 @@
 <br />
 
 <div align="center">
- <img src="./httpc-logo.jpg" width="120" height="120">
+ <img src="./httpc-logo.jpg" width="200" height="200">
 <h1 align="center">HTTPC</h1>
 </div>
 
