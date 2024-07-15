@@ -250,9 +250,9 @@ char *gen_response(http_request *request)
   {
     if (strcmp(request->path, "/") == 0)
     {
-      response = "HTTP/1.1 200 OK";
       if (gzip_encoding)
       {
+        response = "HTTP/1.1 200 OK";
         char *tmp = "Content-Type: text/plain";
         char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
         char *encoding_header = "Content-Encoding: gzip\r\n";
