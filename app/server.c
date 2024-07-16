@@ -209,6 +209,10 @@ char *gen_response(http_request *request) {
   char *response = NULL;
   char *res = NULL;
   int gzip_encoding = 0;
+  // nullify all headers
+  for (int i = 0; i < 10; i++) {
+    request->headers[i] = NULL;
+  }
 
   // Check for "Accept-Encoding: gzip" header
   for (int i = 0; i < 10 && request->headers[i] != NULL; i++) {
@@ -222,8 +226,10 @@ char *gen_response(http_request *request) {
       if (gzip_encoding) {
         response = "HTTP/1.1 200 OK";
         char *tmp = "Content-Type: text/plain";
+        printf("mallocing headers\n");
         char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
         char *encoding_header = "Content-Encoding: gzip\r\n";
+        printf("mallocing res\n");
         res = malloc(strlen(response) + strlen(headers) +
                      strlen(encoding_header) + 1);
         sprintf(res, "%s\r\n%s%s\r\n\r\n", response, headers, encoding_header);
@@ -234,28 +240,34 @@ char *gen_response(http_request *request) {
     } else {
       char *endpoint = strtok(request->path, "/");
       // char *endpoint = request->path;
+      if (endpoint == NULL) {
+        return NULL;
+      }
 
       if (strcmp(endpoint, "user-agent") == 0) {
         char *str = NULL;
         for (int i = 0; i < 10; i++) {
           str = strtok(request->headers[i], ":");
-          if (strcasecmp(str, "User-Agent") == 0) {
-            break;
+          if (str != NULL) {
+            if (strcasecmp(str, "User-Agent") == 0) {
+              break;
+            }
           }
         }
         // char *str = strtok(request->headers[1], ":");
         str = strtok(NULL, ": ");
 
-        // if (str != NULL) {
-        response = "HTTP/1.1 200 OK";
-
         char *tmp = "Content-Type: text/plain\r\nContent-Length:";
         char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
-        sprintf(headers, "%s %lu", tmp, strlen(str));
+        if (str != NULL) {
+          response = "HTTP/1.1 200 OK";
 
-        res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+          sprintf(headers, "%s %lu", tmp, strlen(str));
 
-        sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+          res = malloc(strlen(response) + strlen(headers) + strlen(str) + 1);
+
+          sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
+        }
         // maybe use snprintf instead
         // } else {
         //   res = "HTTP/1.1 400 Bad Request\r\n\r\n";
