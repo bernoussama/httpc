@@ -11,8 +11,7 @@
 
 #define BUFFER_SIZE 1024
 
-typedef struct http_request
-{
+typedef struct http_request {
   char *method;
   char *path;
   char *version;
@@ -26,8 +25,7 @@ void *handle_client(void *arg);
 char *read_file(char *file_path);
 
 char *directory = NULL;
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   // Disable output buffering
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
@@ -35,13 +33,10 @@ int main(int argc, char *argv[])
   // You can use print statements as follows for debugging, they'll be visible
   // when running tests.
 
-  if (argc >= 2)
-  {
+  if (argc >= 2) {
     // Check if the argument is "--directory"
-    if (strcmp(argv[1], "--directory") == 0)
-    {
-      if (argc < 3)
-      {
+    if (strcmp(argv[1], "--directory") == 0) {
+      if (argc < 3) {
         fprintf(stderr, "Error: Missing directory path\n");
         return 1;
       }
@@ -55,8 +50,7 @@ int main(int argc, char *argv[])
   request_buffer[BUFFER_SIZE - 1] = '\0'; // Ensure null-termination
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (server_fd == -1)
-  {
+  if (server_fd == -1) {
 
     return 1;
   }
@@ -65,8 +59,7 @@ int main(int argc, char *argv[])
   // ensures that we don't run into 'Address already in use' errors
   int reuse = 1;
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) <
-      0)
-  {
+      0) {
 
     return 1;
   }
@@ -77,22 +70,19 @@ int main(int argc, char *argv[])
       .sin_addr = {htonl(INADDR_ANY)},
   };
 
-  if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0)
-  {
+  if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0) {
 
     return 1;
   }
 
   int connection_backlog = 10;
-  if (listen(server_fd, connection_backlog) != 0)
-  {
+  if (listen(server_fd, connection_backlog) != 0) {
 
     return 1;
   }
 
   client_addr_len = sizeof(client_addr);
-  while (1)
-  {
+  while (1) {
     int fd =
         accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
 
@@ -109,8 +99,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void *handle_client(void *arg)
-{
+void *handle_client(void *arg) {
 
   int fd = *(int *)arg;
 
@@ -119,26 +108,21 @@ void *handle_client(void *arg)
   // Receive the HTTP request
 
   int bytes_received = recv(fd, request_buffer, sizeof(request_buffer) - 1, 0);
-  if (bytes_received == -1)
-  {
+  if (bytes_received == -1) {
     perror("recv failed");
     // exit(1);
   }
   request_buffer[bytes_received] = '\0';
   char *request_string = request_buffer;
   http_request *request = parse_request(request_string);
-  if (request == NULL)
-  {
+  if (request == NULL) {
   }
 
   char *response;
   response = gen_response(request);
-  if (response != NULL)
-  {
+  if (response != NULL) {
     int bytes_sent = send(fd, response, strlen(response), 0);
-  }
-  else
-  {
+  } else {
   }
   // server response
 
@@ -150,12 +134,10 @@ void *handle_client(void *arg)
   free(request);
 }
 
-http_request *parse_request(char *request)
-{
+http_request *parse_request(char *request) {
   char *headers = strchr(request, '\n') + 1;
   http_request *req = malloc(sizeof(http_request));
-  if (request == NULL)
-  {
+  if (request == NULL) {
 
     return (NULL); // Error handling: memory allocation failed
   }
@@ -163,8 +145,7 @@ http_request *parse_request(char *request)
   // parse method
 
   char *method = strtok(request, " ");
-  if (method == NULL)
-  {
+  if (method == NULL) {
 
     // Error handling: invalid request format
     free(req);
@@ -176,8 +157,7 @@ http_request *parse_request(char *request)
   // parse path
 
   char *path = strtok(NULL, " ");
-  if (path == NULL)
-  {
+  if (path == NULL) {
 
     // Error handling: invalid request format
     free(req->method);
@@ -190,8 +170,7 @@ http_request *parse_request(char *request)
   // parse version
 
   char *version = strtok(NULL, "\r\n");
-  if (version == NULL)
-  {
+  if (version == NULL) {
 
     // Error handling: invalid request format
     free(req->method);
@@ -207,8 +186,7 @@ http_request *parse_request(char *request)
   // parse_headers(headers, req->headers);
 
   char *header = strtok(NULL, "\r");
-  for (int i = 0; strcmp(header, "\n") != 0 && i < 10; i++)
-  {
+  for (int i = 0; strcmp(header, "\n") != 0 && i < 10; i++) {
     header = header + 1;
     req->headers[i] = malloc(strlen(header) + 1);
 
@@ -217,67 +195,51 @@ http_request *parse_request(char *request)
   }
 
   char *body = strtok(NULL, "\r\n");
-  if (body != NULL)
-  {
+  if (body != NULL) {
     req->body = malloc(strlen(body) + 1);
     strcpy(req->body, body);
-  }
-  else
-  {
+  } else {
     req->body = NULL;
   }
 
   return req;
 }
 
-char *gen_response(http_request *request)
-{
-
+char *gen_response(http_request *request) {
   char *response = NULL;
   char *res = NULL;
   int gzip_encoding = 0;
 
   // Check for "Accept-Encoding: gzip" header
-  for (int i = 0; i < 10 && request->headers[i] != NULL; i++)
-  {
-    if (strstr(request->headers[i], "Accept-Encoding: gzip") != NULL)
-    {
+  for (int i = 0; i < 10 && request->headers[i] != NULL; i++) {
+    if (strstr(request->headers[i], "Accept-Encoding: gzip") != NULL) {
       gzip_encoding = 1;
       break;
     }
   }
-  if (strcmp(request->method, "GET") == 0)
-  {
-    if (strcmp(request->path, "/") == 0)
-    {
-      if (gzip_encoding)
-      {
+  if (strcmp(request->method, "GET") == 0) {
+    if (strcmp(request->path, "/") == 0) {
+      if (gzip_encoding) {
         response = "HTTP/1.1 200 OK";
         char *tmp = "Content-Type: text/plain";
         char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
         char *encoding_header = "Content-Encoding: gzip\r\n";
-        res = malloc(strlen(response) + strlen(headers) + strlen(encoding_header) + 1);
+        res = malloc(strlen(response) + strlen(headers) +
+                     strlen(encoding_header) + 1);
         sprintf(res, "%s\r\n%s%s\r\n\r\n", response, headers, encoding_header);
         free(headers);
-      }
-      else
-      {
+      } else {
         res = "HTTP/1.1 200 OK\r\n\r\n";
       }
-    }
-    else
-    {
+    } else {
       char *endpoint = strtok(request->path, "/");
       // char *endpoint = request->path;
 
-      if (strcmp(endpoint, "user-agent") == 0)
-      {
+      if (strcmp(endpoint, "user-agent") == 0) {
         char *str = NULL;
-        for (int i = 0; i < 10; i++)
-        {
+        for (int i = 0; i < 10; i++) {
           str = strtok(request->headers[i], ":");
-          if (strcasecmp(str, "User-Agent") == 0)
-          {
+          if (strcasecmp(str, "User-Agent") == 0) {
             break;
           }
         }
@@ -301,25 +263,21 @@ char *gen_response(http_request *request)
         free(headers);
         // if (str != NULL)
         //   free(str);
-      }
-      else if (strcmp(endpoint, "echo") == 0)
-      {
+      } else if (strcmp(endpoint, "echo") == 0) {
         char *str = strtok(NULL, "/");
-        if (str != NULL)
-        {
+        if (str != NULL) {
           response = "HTTP/1.1 200 OK";
 
           char *tmp = "Content-Type: text/plain\r\nContent-Length:";
           char *headers = malloc(strlen(tmp) + sizeof(unsigned long) + 1);
           sprintf(headers, "%s %lu", tmp, strlen(str));
-          if (gzip_encoding)
-          {
+          if (gzip_encoding) {
             char *encoding_header = "Content-Encoding: gzip\r\n";
-            res = malloc(strlen(response) + strlen(headers) + strlen(encoding_header) + strlen(str) + 5);
-            sprintf(res, "%s\r\n%s\r\n%s\r\n\r\n%s", response, headers, encoding_header, str);
-          }
-          else
-          {
+            res = malloc(strlen(response) + strlen(headers) +
+                         strlen(encoding_header) + strlen(str) + 5);
+            sprintf(res, "%s\r\n%s\r\n%s\r\n\r\n%s", response, headers,
+                    encoding_header, str);
+          } else {
             res = malloc(strlen(response) + strlen(headers) + strlen(str) + 5);
             sprintf(res, "%s\r\n%s\r\n\r\n%s", response, headers, str);
           }
@@ -330,17 +288,12 @@ char *gen_response(http_request *request)
 
           free(headers);
           // free(str);
-        }
-        else
-        {
+        } else {
           res = "HTTP/1.1 400 Bad Request\r\n\r\n";
         }
-      }
-      else if (strcmp(endpoint, "files") == 0)
-      {
+      } else if (strcmp(endpoint, "files") == 0) {
         char *str = strtok(NULL, "/");
-        if (str != NULL)
-        {
+        if (str != NULL) {
           response = "HTTP/1.1 200 OK";
 
           char *file_path = malloc(strlen(directory) + strlen(str) + 2);
@@ -348,8 +301,7 @@ char *gen_response(http_request *request)
           sprintf(file_path, "%s/%s", directory, str);
 
           str = read_file(file_path);
-          if (str != NULL)
-          {
+          if (str != NULL) {
             free(file_path);
 
             char *tmp =
@@ -366,32 +318,22 @@ char *gen_response(http_request *request)
               free(headers);
 
             // free(str);
-          }
-          else
-          {
+          } else {
             res = "HTTP/1.1 404 Not Found\r\n\r\n";
           }
-        }
-        else
-        {
+        } else {
           res = "HTTP/1.1 400 Bad Request\r\n\r\n";
         }
-      }
-      else
-      {
+      } else {
         res = "HTTP/1.1 404 Not Found\r\n\r\n";
       }
     }
-  }
-  else if (strcmp(request->method, "POST") == 0)
-  {
+  } else if (strcmp(request->method, "POST") == 0) {
     printf("POST method\n");
     char *endpoint = strtok(request->path, "/");
-    if (strcmp(endpoint, "files") == 0)
-    {
+    if (strcmp(endpoint, "files") == 0) {
       char *str = strtok(NULL, "/");
-      if (str != NULL)
-      {
+      if (str != NULL) {
         response = "HTTP/1.1 201 Created\r\n\r\n";
         // filname to file path
         char *file_path = malloc(strlen(directory) + strlen(str) + 2);
@@ -402,8 +344,7 @@ char *gen_response(http_request *request)
         /* Open file in w (write) mode. Specify the path and filename */
         fPtr = fopen(file_path, "w");
         /* Check if file opening was successful */
-        if (fPtr == NULL)
-        {
+        if (fPtr == NULL) {
           printf("Unable to create file.\n");
           free(fPtr);
         }
@@ -418,14 +359,12 @@ char *gen_response(http_request *request)
   return res;
 }
 
-char *read_file(char *file_path)
-{
+char *read_file(char *file_path) {
   FILE *fp;
   // char filename[] = "example.txt"; // replace with your file name
 
   fp = fopen(file_path, "r"); // open file in read-only mode
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     // printf("Error opening file\n");
     return NULL;
   }
