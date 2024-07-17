@@ -21,7 +21,7 @@ typedef struct http_request {
 
 http_request *parse_request(char *request);
 char *gen_response(http_request *request);
-void *handle_client(void *arg);
+void *handle_client(const void *arg);
 char *read_file(char *file_path);
 
 char *directory = NULL;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void *handle_client(void *arg) {
+void *handle_client(const void *arg) {
 
   int fd = *(int *)arg;
 
@@ -132,6 +132,7 @@ void *handle_client(void *arg) {
   // free(request->headers);
   free(request->body);
   free(request);
+  close(fd);
 }
 
 http_request *parse_request(char *request) {
