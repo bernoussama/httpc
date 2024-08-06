@@ -3,7 +3,7 @@
 <div align="center">
 
 [![MIT License][license-shield]][license-url]
-
+[![CodeFactor](https://www.codefactor.io/repository/github/0ussamabernou/httpc/badge)](https://www.codefactor.io/repository/github/0ussamabernou/httpc)
 </div>
 <br />
 
@@ -102,7 +102,7 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc
 [license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
 [C-shield]: https://img.shields.io/badge/-0769AD?style=for-the-badge&logo=C&logoColor=white
 [C-url]: https://en.wikipedia.org/wiki/C_(programming_language)
