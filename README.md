@@ -3,7 +3,7 @@
 <div align="center">
 
 [![MIT License][license-shield]][license-url]
-[![CodeFactor](https://www.codefactor.io/repository/github/0ussamabernou/httpc/badge)](https://www.codefactor.io/repository/github/0ussamabernou/httpc)
+[![CodeFactor](https://www.codefactor.io/repository/github/bernoussama/httpc/badge)](https://www.codefactor.io/repository/github/bernoussama/httpc)
 </div>
 <br />
 
@@ -69,7 +69,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/0ussamaBernou/httpc/blob/master/licence.txt) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/bernoussama/httpc/blob/master/licence.txt) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -79,7 +79,7 @@ Distributed under the MIT License. See [LICENSE](https://github.com/0ussamaBerno
 
 Oussama Bernou - [@bernoussama](https://x.com/bernoussama) - contact@bernoussama.com
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+<!-- Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name) -->
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -102,7 +102,7 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[license-shield]: https://img.shields.io/github/license/0ussamaBernou/httpc
-[license-url]: https://github.com/0ussamaBernou/httpc/blob/master/LICENSE.txt
+[license-shield]: https://img.shields.io/github/license/bernoussama/httpc
+[license-url]: https://github.com/bernoussama/httpc/blob/master/LICENSE.txt
 [C-shield]: https://img.shields.io/badge/-0769AD?style=for-the-badge&logo=C&logoColor=white
 [C-url]: https://en.wikipedia.org/wiki/C_(programming_language)
